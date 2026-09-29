@@ -3,7 +3,7 @@
 import React from 'react';
 import { TiltCard } from '@/components/ui/TiltCard';
 import { Glass } from '@/components/ui/Glass';
-import { Building2, Compass, Wrench, Briefcase, ArrowUpRight } from 'lucide-react';
+import { Building2, Compass, Wrench, Briefcase, ArrowUpRight, LucideIcon } from 'lucide-react';
 
 interface ServiceItem {
   id: string;
@@ -12,7 +12,7 @@ interface ServiceItem {
   subtitle: string;
   description: string;
   deliverables: string[];
-  icon: React.ElementType;
+  icon: LucideIcon;
 }
 
 const SERVICES: ServiceItem[] = [

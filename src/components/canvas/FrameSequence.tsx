@@ -148,6 +148,21 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
           ctx.globalAlpha = 1.0;
         }
       }
+
+      // Memory Management: On mobile, prune bitmaps far from current frame
+      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+        const radius = 15;
+        if (framesRef.current.size > 30) {
+          for (const [idx, frame] of framesRef.current.entries()) {
+            if (idx !== 1 && (idx < frameA - radius || idx > frameA + radius)) {
+              if ('close' in frame && typeof (frame as ImageBitmap).close === 'function') {
+                (frame as ImageBitmap).close();
+              }
+              framesRef.current.delete(idx);
+            }
+          }
+        }
+      }
     },
     [frameCount]
   );
@@ -262,12 +277,32 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
       }
     };
 
-    initFirstFrame();
+    const container = containerRef.current;
+    let observer: IntersectionObserver | null = null;
+
+    if (container && typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            initFirstFrame();
+            observer?.disconnect();
+            observer = null;
+          }
+        },
+        { rootMargin: '600px' }
+      );
+      observer.observe(container);
+    } else {
+      initFirstFrame();
+    }
 
     window.addEventListener('resize', handleResize, { passive: true });
 
     return () => {
       isCancelled = true;
+      if (observer) {
+        observer.disconnect();
+      }
       window.removeEventListener('resize', handleResize);
     };
   }, [

@@ -1,7 +1,6 @@
-'use client';
-
 import React from 'react';
 
+// Static hardware-accelerated 35mm film grain overlay
 export const FilmGrain: React.FC<{ opacity?: number; className?: string }> = ({
   opacity = 0.045,
   className = '',
@@ -9,32 +8,13 @@ export const FilmGrain: React.FC<{ opacity?: number; className?: string }> = ({
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-0 z-20 overflow-hidden mix-blend-screen select-none ${className}`}
-      style={{ opacity }}
-    >
-      <svg
-        className="w-full h-full object-cover"
-        xmlns="http://www.w3.org/2000/svg"
-        width="100%"
-        height="100%"
-      >
-        <filter id="arc-film-grain" x="0%" y="0%" width="100%" height="100%">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.75"
-            numOctaves="3"
-            stitchTiles="stitch"
-            result="noise"
-          />
-          <feColorMatrix
-            type="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.85 0"
-            result="coloredNoise"
-          />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#arc-film-grain)" />
-      </svg>
-    </div>
+      className={`pointer-events-none absolute inset-0 z-20 overflow-hidden mix-blend-screen select-none transform-gpu will-change-transform ${className}`}
+      style={{
+        opacity,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.7'/%3E%3C/svg%3E")`,
+        backgroundRepeat: 'repeat',
+      }}
+    />
   );
 };
 

@@ -4,14 +4,14 @@ import React from 'react';
 import { FrameSequence } from '@/components/canvas/FrameSequence';
 import { FilmGrain } from '@/components/canvas/FilmGrain';
 import { Glass } from '@/components/ui/Glass';
-import { Headphones, PenTool, Box, Hammer } from 'lucide-react';
+import { Headphones, PenTool, Box, Hammer, LucideIcon } from 'lucide-react';
 
 interface Chapter {
   number: string;
   title: string;
   tagline: string;
   description: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   start: number;
   peak: number;
   end: number;

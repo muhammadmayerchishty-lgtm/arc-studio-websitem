@@ -4,14 +4,14 @@ import React from 'react';
 import { FrameSequence } from '@/components/canvas/FrameSequence';
 import { FilmGrain } from '@/components/canvas/FilmGrain';
 import { Glass } from '@/components/ui/Glass';
-import { Sun, Sunset, Moon, ShieldCheck, Users, Home } from 'lucide-react';
+import { Sun, Sunset, Moon, ShieldCheck, Users, Home, LucideIcon } from 'lucide-react';
 
 interface StatCardConfig {
   id: string;
   badge: string;
   stat: string;
   subtext: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   start: number;
   peak: number;
   end: number;

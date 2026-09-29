@@ -15,8 +15,9 @@ const SECTIONS: Section[] = [
   { id: 'services', label: 'Services', number: '04' },
   { id: 'projects', label: 'Projects', number: '05' },
   { id: 'interiors', label: 'Interiors', number: '06' },
-  { id: 'book', label: 'Consult', number: '07' },
-  { id: 'contact', label: 'Contact', number: '08' },
+  { id: 'location', label: 'Territory', number: '07' },
+  { id: 'book', label: 'Consult', number: '08' },
+  { id: 'contact', label: 'Contact', number: '09' },
 ];
 
 export const SectionProgress: React.FC = () => {

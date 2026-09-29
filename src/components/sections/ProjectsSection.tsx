@@ -374,7 +374,7 @@ export const ProjectsSection: React.FC = () => {
                   }}
                 >
                   <Phone className="w-3.5 h-3.5 text-basalt" />
-                  <span>Book for similar home</span>
+                  <span>Book a consultation for a similar home</span>
                 </button>
               </div>
             </Glass>

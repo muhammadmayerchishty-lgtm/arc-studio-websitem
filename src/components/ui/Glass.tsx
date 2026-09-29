@@ -1,5 +1,3 @@
-'use client';
-
 import React, { ElementType, ComponentPropsWithoutRef } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';

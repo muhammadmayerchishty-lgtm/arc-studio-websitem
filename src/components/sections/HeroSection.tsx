@@ -44,11 +44,10 @@ export const HeroSection: React.FC = () => {
 
               {/* Center-Top Title: "Spaces drawn with intent." */}
               <div
-                className="relative z-20 mt-28 sm:mt-32 max-w-4xl transition-all duration-300 ease-out will-change-transform"
+                className="relative z-20 mt-28 sm:mt-32 max-w-4xl transition-all duration-300 ease-out will-change-transform transform-gpu"
                 style={{
                   opacity,
                   transform: `translate3d(0, ${translateY}px, 0)`,
-                  filter: `blur(${blur}px)`,
                   visibility: opacity <= 0.01 ? 'hidden' : 'visible',
                 }}
               >
@@ -89,11 +88,10 @@ export const HeroSection: React.FC = () => {
 
               {/* Bottom Row: Bottom-Left Pitch Card + Bottom-Right Thin Brass Scroll Indicator */}
               <div
-                className="relative z-20 flex flex-col sm:flex-row items-end justify-between gap-8 pb-4 sm:pb-8 transition-all duration-300 ease-out will-change-transform"
+                className="relative z-20 flex flex-col sm:flex-row items-end justify-between gap-8 pb-4 sm:pb-8 transition-all duration-300 ease-out will-change-transform transform-gpu"
                 style={{
                   opacity,
                   transform: `translate3d(0, ${translateY * 0.75}px, 0)`,
-                  filter: `blur(${blur * 0.8}px)`,
                   visibility: opacity <= 0.01 ? 'hidden' : 'visible',
                 }}
               >

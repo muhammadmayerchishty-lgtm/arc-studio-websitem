@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect, Suspense, Component, ErrorInfo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import { TurntableBase } from './TurntableBase';
@@ -10,6 +10,76 @@ import { NoirResidence } from './NoirResidence';
 import { DuneHouse } from './DuneHouse';
 import { LumenPenthouse } from './LumenPenthouse';
 import { ArcPavilion } from './ArcPavilion';
+
+// Bespoke architectural camera viewpoints for each home
+const CAMERA_VIEWPOINTS: [number, number, number][] = [
+  [0, 5.5, 11],       // Villa Aurora: balanced perspective of cantilever and pool
+  [-3.2, 5.8, 10.5],  // Noir Residence: angled view of monolithic black massing and courtyard
+  [3.2, 5.4, 10.5],   // Dune House: portico arches and pergola terrace
+  [0, 6.8, 11.5],     // Lumen Penthouse: high-rise glass crown and panoramic rotunda
+  [3.0, 5.2, 10.5],   // Arc Pavilion: sweeping curved roof and brass ribbon
+];
+
+function CameraController({
+  activeProjectIndex,
+  isInteracting,
+  reducedMotion = false,
+}: {
+  activeProjectIndex: number;
+  isInteracting: boolean;
+  reducedMotion?: boolean;
+}) {
+  const { camera } = useThree();
+  const targetPos = useRef(new THREE.Vector3(...CAMERA_VIEWPOINTS[activeProjectIndex]));
+
+  useEffect(() => {
+    targetPos.current.set(...CAMERA_VIEWPOINTS[activeProjectIndex]);
+    if (reducedMotion) {
+      camera.position.set(...CAMERA_VIEWPOINTS[activeProjectIndex]);
+    }
+  }, [activeProjectIndex, camera, reducedMotion]);
+
+  useFrame((_, delta) => {
+    if (!isInteracting && !reducedMotion) {
+      camera.position.lerp(targetPos.current, Math.min(delta * 2.0, 0.08));
+    }
+  });
+
+  return null;
+}
+
+// Turntable Rotation Controller
+function RotatingScene({
+  activeProjectIndex,
+  isInteracting,
+  reducedMotion = false,
+}: {
+  activeProjectIndex: number;
+  isInteracting: boolean;
+  reducedMotion?: boolean;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame((_, delta) => {
+    if (groupRef.current && !isInteracting && !reducedMotion) {
+      // Gentle turntable rotation
+      groupRef.current.rotation.y += delta * 0.08;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={[0, 0, 0]}>
+      <TurntableBase />
+
+      {/* Render active procedural house */}
+      {activeProjectIndex === 0 && <VillaAurora />}
+      {activeProjectIndex === 1 && <NoirResidence />}
+      {activeProjectIndex === 2 && <DuneHouse />}
+      {activeProjectIndex === 3 && <LumenPenthouse />}
+      {activeProjectIndex === 4 && <ArcPavilion />}
+    </group>
+  );
+}
 
 // Error Boundary with static image fallback
 interface ErrorBoundaryProps {
@@ -44,7 +114,6 @@ class ProjectCanvasErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
             alt="Arc Studio Villa Architecture"
             className="absolute inset-0 w-full h-full object-cover opacity-60"
             onError={(e) => {
-              // Graceful fallback if image does not exist
               e.currentTarget.style.display = 'none';
             }}
           />
@@ -66,37 +135,6 @@ class ProjectCanvasErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
   }
 }
 
-// Turntable Rotation Controller
-function RotatingScene({
-  activeProjectIndex,
-  isInteracting,
-}: {
-  activeProjectIndex: number;
-  isInteracting: boolean;
-}) {
-  const groupRef = useRef<THREE.Group>(null);
-
-  useFrame((_, delta) => {
-    if (groupRef.current && !isInteracting) {
-      // Gentle turntable rotation
-      groupRef.current.rotation.y += delta * 0.08;
-    }
-  });
-
-  return (
-    <group ref={groupRef} position={[0, 0, 0]}>
-      <TurntableBase />
-
-      {/* Render active procedural house */}
-      {activeProjectIndex === 0 && <VillaAurora />}
-      {activeProjectIndex === 1 && <NoirResidence />}
-      {activeProjectIndex === 2 && <DuneHouse />}
-      {activeProjectIndex === 3 && <LumenPenthouse />}
-      {activeProjectIndex === 4 && <ArcPavilion />}
-    </group>
-  );
-}
-
 interface ProjectsCanvasProps {
   activeProjectIndex: number;
   className?: string;
@@ -111,8 +149,14 @@ export const ProjectsCanvas: React.FC<ProjectsCanvasProps> = ({
   const [isInteracting, setIsInteracting] = useState(false);
   const [dpr, setDpr] = useState<number>(1.5);
   const [isMobile, setIsMobile] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(media.matches);
+    const motionListener = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    media.addEventListener('change', motionListener);
+
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
@@ -122,7 +166,10 @@ export const ProjectsCanvas: React.FC<ProjectsCanvasProps> = ({
 
     checkMobile();
     window.addEventListener('resize', checkMobile, { passive: true });
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      media.removeEventListener('change', motionListener);
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
 
   return (
@@ -174,10 +221,18 @@ export const ProjectsCanvas: React.FC<ProjectsCanvasProps> = ({
             {/* Dusk HDR-like Environment Preset */}
             <Environment preset="sunset" />
 
+            {/* Camera Viewpoint Smooth Lerp Transition */}
+            <CameraController
+              activeProjectIndex={activeProjectIndex}
+              isInteracting={isInteracting}
+              reducedMotion={reducedMotion}
+            />
+
             {/* Rotating Turntable with Active House */}
             <RotatingScene
               activeProjectIndex={activeProjectIndex}
               isInteracting={isInteracting}
+              reducedMotion={reducedMotion}
             />
 
             {/* Soft Contact Shadows on Turntable Floor */}

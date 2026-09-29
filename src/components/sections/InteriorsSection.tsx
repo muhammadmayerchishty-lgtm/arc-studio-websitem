@@ -50,6 +50,10 @@ function ZoomableGalleryCard({ item }: { item: GalleryItem }) {
   const imageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Respect prefers-reduced-motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
     gsap.registerPlugin(ScrollTrigger);
 
     const container = containerRef.current;
