@@ -135,7 +135,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="font-body bg-basalt text-bone selection:bg-brass/30 selection:text-bone min-h-screen relative">
+      <body className="font-body bg-basalt text-bone selection:bg-brass/30 selection:text-bone min-h-[100svh] relative">
         <SmoothScroll>
           <CustomCursor />
           <Navbar />

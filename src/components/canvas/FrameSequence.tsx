@@ -362,7 +362,7 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
       {/* Sticky Fullscreen Viewport */}
       <div
         ref={stickyRef}
-        className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-basalt"
+        className="sticky top-0 left-0 w-full h-[100svh] overflow-hidden bg-basalt"
       >
         {/* Fullscreen Canvas */}
         <canvas

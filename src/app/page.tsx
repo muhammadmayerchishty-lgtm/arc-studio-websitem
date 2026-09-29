@@ -15,7 +15,7 @@ import { FloatingWhatsApp } from '@/components/layout/FloatingWhatsApp';
 
 export default function Home() {
   return (
-    <main className="relative flex flex-col items-center w-full min-h-screen overflow-x-hidden bg-basalt">
+    <main className="relative flex flex-col items-center w-full min-h-[100svh] overflow-x-hidden bg-basalt">
       {/* =========================================================================
           01. PINNED HERO SECTION (FrameSequence - 300vh)
          ========================================================================= */}
