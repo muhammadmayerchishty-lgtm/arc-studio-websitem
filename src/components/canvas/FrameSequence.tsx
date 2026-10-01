@@ -105,6 +105,14 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
 
       let imgA = framesRef.current.get(frameA);
       if (!imgA) {
+        // On mobile, if frame isn't loaded yet, trigger lazy load immediately
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+        if (isMobile) {
+          loadSingleFrame(frameA, getFolderPath()).then((img) => {
+            if (img && canvasRef.current) renderFrameToCanvas(frameFloat);
+          });
+        }
+
         for (let offset = 1; offset <= frameCount; offset++) {
           if (framesRef.current.has(frameA - offset)) {
             imgA = framesRef.current.get(frameA - offset);
@@ -139,10 +147,11 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
         }
       }
 
+      // Strict Mobile Memory Pruning: Keep max 6 frames in RAM at once on iPhone
       if (typeof window !== 'undefined') {
         const isMobile = window.innerWidth < 768;
-        const maxCacheSize = isMobile ? 10 : 20;
-        const radius = isMobile ? 4 : 8;
+        const maxCacheSize = isMobile ? 6 : 20;
+        const radius = isMobile ? 2 : 8;
 
         if (framesRef.current.size > maxCacheSize) {
           for (const [idx, frame] of framesRef.current.entries()) {
@@ -156,7 +165,7 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
         }
       }
     },
-    [frameCount]
+    [frameCount, getFolderPath, loadSingleFrame]
   );
 
   const handleResize = useCallback(() => {
@@ -183,15 +192,14 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
     const folderPath = getFolderPath();
     let isCancelled = false;
 
-    // STEP 1: Load Frame 1 and unlock scrolling INSTANTLY
     const initFirstFrame = async () => {
       const firstFrame = await loadSingleFrame(1, folderPath);
       if (isCancelled) return;
 
       if (firstFrame) {
         loadedCountRef.current = 1;
-        setLoadPercent(Math.round((1 / frameCount) * 100));
-        setIsFirstFrameReady(true); // <--- Scroll unlocks right away!
+        setLoadPercent(100);
+        setIsFirstFrameReady(true);
         handleResize();
         onReady?.();
 
@@ -200,7 +208,14 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
           return;
         }
 
-        // STEP 2: Stream remaining frames smoothly in the background without blocking
+        const isMobile = window.innerWidth < 768;
+        if (isMobile) {
+          // MOBILE: Disable background preloading entirely to prevent OOM crashes!
+          setIsPreloadComplete(true);
+          return;
+        }
+
+        // DESKTOP ONLY: Background streaming
         const remainingIndices: number[] = [];
         for (let i = 2; i <= frameCount; i++) {
           remainingIndices.push(i);
@@ -233,7 +248,7 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
               if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
                 window.requestIdleCallback(loadNext, { timeout: 1000 });
               } else {
-                setTimeout(loadNext, 16);
+                setTimeout(loadNext, 50);
               }
             } else {
               setIsPreloadComplete(true);
@@ -243,7 +258,7 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
           if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
             window.requestIdleCallback(loadNext, { timeout: 1000 });
           } else {
-            setTimeout(loadNext, 16);
+            setTimeout(loadNext, 50);
           }
         };
 
@@ -274,9 +289,7 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
 
     return () => {
       isCancelled = true;
-      if (observer) {
-        observer.disconnect();
-      }
+      if (observer) observer.disconnect();
       window.removeEventListener('resize', handleResize);
     };
   }, [
@@ -372,13 +385,6 @@ export const FrameSequence: React.FC<FrameSequenceProps> = ({
             </span>
           </Glass>
         </div>
-
-        {isFirstFrameReady && !isPreloadComplete && (
-          <div className="pointer-events-none absolute bottom-4 right-4 z-20 flex items-center gap-2 px-3 py-1 rounded-full bg-basalt/60 backdrop-blur-md border border-brass/20 text-[10px] font-mono text-smoke">
-            <span className="w-1.5 h-1.5 rounded-full bg-brass/60 animate-pulse" />
-            <span>Streaming frames ({loadPercent}%)</span>
-          </div>
-        )}
 
         {typeof children === 'function'
           ? children({
